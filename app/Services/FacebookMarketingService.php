@@ -12,11 +12,13 @@ use FacebookAds\Logger\CurlLogger;
 use FacebookAds\Object\Ad;
 use FacebookAds\Object\AdAccount as FacebookAdAccount;
 use FacebookAds\Object\AdSet;
+use FacebookAds\Object\Business;
 use FacebookAds\Object\Campaign;
 use FacebookAds\Object\Fields\AdAccountFields;
 use FacebookAds\Object\Fields\AdFields;
 use FacebookAds\Object\Fields\AdSetFields;
 use FacebookAds\Object\Fields\CampaignFields;
+use FacebookAds\Object\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -73,7 +75,7 @@ final readonly class FacebookMarketingService
      */
     public function getAdAccountDetails(string $adAccountId): array
     {
-        return $this->getAdAccountData($adAccountId, null, false);
+        return $this->getAdAccountData($adAccountId, false);
     }
 
     /**
@@ -374,7 +376,7 @@ final readonly class FacebookMarketingService
     {
         try {
             // Create Business Manager object
-            $businessManager = new \FacebookAds\Object\Business($businessManagerId);
+            $businessManager = new Business($businessManagerId);
 
             // Get all ad accounts owned by this business manager
             $adAccounts = $businessManager->getOwnedAdAccounts(self::AD_ACCOUNT_FIELDS);
@@ -432,7 +434,7 @@ final readonly class FacebookMarketingService
     {
         try {
             // Create Business Manager object
-            $businessManager = new \FacebookAds\Object\Business($businessManagerId);
+            $businessManager = new Business($businessManagerId);
 
             // Get all ad accounts accessible to this business manager (owned + shared)
             // Note: getAdAccounts() might not be available, so we'll use getOwnedAdAccounts() for now
@@ -637,7 +639,7 @@ final readonly class FacebookMarketingService
     public function getBusinessManagerAdAccounts(string $businessManagerId): Collection
     {
         try {
-            $business = new \FacebookAds\Object\Business($businessManagerId);
+            $business = new Business($businessManagerId);
 
             $adAccounts = $business->getOwnedAdAccounts(self::AD_ACCOUNT_FIELDS);
 
@@ -694,7 +696,7 @@ final readonly class FacebookMarketingService
     public function getBusinessManagerDetails(string $businessManagerId): array
     {
         try {
-            $business = new \FacebookAds\Object\Business($businessManagerId);
+            $business = new Business($businessManagerId);
             $businessData = $business->getSelf([
                 'id',
                 'name',
@@ -717,11 +719,11 @@ final readonly class FacebookMarketingService
     /**
      * Get all business managers accessible to the current user
      */
-    public function getAccessibleBusinessManagers(?string $accessToken = null): Collection
+    public function getAccessibleBusinessManagers(): Collection
     {
         try {
             // Get the current user to access their businesses
-            $user = new \FacebookAds\Object\User('me');
+            $user = new User('me');
 
             $businesses = $user->getBusinesses([
                 'id',
@@ -757,11 +759,11 @@ final readonly class FacebookMarketingService
     /**
      * Get business managers owned by the current user
      */
-    public function getOwnedBusinessManagers(?string $accessToken = null): Collection
+    public function getOwnedBusinessManagers(): Collection
     {
         try {
             // Get the current user to access their owned businesses
-            $user = new \FacebookAds\Object\User('me');
+            $user = new User('me');
 
             $businesses = $user->getBusinesses([
                 'id',
@@ -798,12 +800,12 @@ final readonly class FacebookMarketingService
     /**
      * Get all business managers (both owned and accessible) with their permissions
      */
-    public function getAllBusinessManagers(?string $accessToken = null): array
+    public function getAllBusinessManagers(): array
     {
         try {
             // Get both owned and accessible business managers
-            $ownedBusinesses = $this->getOwnedBusinessManagers($accessToken);
-            $accessibleBusinesses = $this->getAccessibleBusinessManagers($accessToken);
+            $ownedBusinesses = $this->getOwnedBusinessManagers();
+            $accessibleBusinesses = $this->getAccessibleBusinessManagers();
 
             // Merge and deduplicate
             $allBusinesses = $ownedBusinesses->merge($accessibleBusinesses)
@@ -849,7 +851,7 @@ final readonly class FacebookMarketingService
     public function testBusinessManagerAccess(string $businessManagerId): array
     {
         try {
-            $business = new \FacebookAds\Object\Business($businessManagerId);
+            $business = new Business($businessManagerId);
 
             // Try to get basic business info
             $businessData = $business->getSelf([
@@ -1151,7 +1153,7 @@ final readonly class FacebookMarketingService
         Api::init($this->appId, $this->appSecret, $this->accessToken);
 
         if (config('app.debug')) {
-            Api::instance()->setLogger(new CurlLogger());
+            Api::instance()->setLogger(new CurlLogger);
         }
     }
 

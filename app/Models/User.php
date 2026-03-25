@@ -13,6 +13,8 @@ use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -38,5 +40,25 @@ class User extends Authenticatable implements HasAppAuthentication, HasAppAuthen
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function adAccounts(): HasMany
+    {
+        return $this->hasMany(AdAccount::class);
+    }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function userRateBuckets(): HasMany
+    {
+        return $this->hasMany(UserRateBucket::class);
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
     }
 }

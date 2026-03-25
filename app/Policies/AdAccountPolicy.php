@@ -4,68 +4,51 @@ namespace App\Policies;
 
 use App\Models\AdAccount;
 use App\Models\Admin;
-use Illuminate\Auth\Access\Response;
+use App\Models\User;
 
 class AdAccountPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(Admin $admin): bool
+    public function viewAny(Admin|User $actor): bool
     {
         return true;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(Admin $admin, AdAccount $adAccount): bool
+    public function view(Admin|User $actor, AdAccount $adAccount): bool
     {
-        return true;
+        if ($actor instanceof Admin) {
+            return true;
+        }
+
+        return $adAccount->user_id === $actor->id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(Admin $admin): bool
+    public function create(Admin|User $actor): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(Admin $admin, AdAccount $adAccount): bool
+    public function update(Admin|User $actor, AdAccount $adAccount): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(Admin $admin, AdAccount $adAccount): bool
+    public function delete(Admin|User $actor, AdAccount $adAccount): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(Admin $admin, AdAccount $adAccount): bool
+    public function restore(Admin|User $actor, AdAccount $adAccount): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(Admin $admin, AdAccount $adAccount): bool
+    public function forceDelete(Admin|User $actor, AdAccount $adAccount): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    public function deleteAny(Admin $admin): bool
+    public function deleteAny(Admin|User $actor): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 }

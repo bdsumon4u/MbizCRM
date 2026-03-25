@@ -4,7 +4,11 @@ namespace App\Filament\Resources\Admin\BusinessManagers\Pages;
 
 use App\Filament\Resources\Admin\BusinessManagers\BusinessManagerResource;
 use App\Filament\Resources\Admin\BusinessManagers\Schemas\BusinessManagerForm;
+use App\Services\FacebookMarketingService;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +20,22 @@ class ListBusinessManagers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('import')
+                ->form([
+                    TextInput::make('access_token')
+                        ->password()
+                        ->required(),
+                ])
+                ->action(function (array $data): void {
+                    $service = FacebookMarketingService::create($data['access_token']);
+                    $result = $service->getAllBusinessManagers();
+
+                    Notification::make()
+                        ->title('Import request completed')
+                        ->body('Discovered '.($result['total_businesses'] ?? 0).' business managers.')
+                        ->success()
+                        ->send();
+                }),
             CreateAction::make()
                 ->slideOver()
                 ->steps([

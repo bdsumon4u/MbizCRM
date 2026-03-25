@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Admin\AdAccounts\Schemas;
 
+use App\Enums\AdAccountStatus;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class AdAccountForm
@@ -14,16 +16,23 @@ class AdAccountForm
     {
         return $schema
             ->components([
-                TextInput::make('bm_id')
+                Select::make('user_id')
+                    ->relationship('user', 'email')
+                    ->searchable()
+                    ->preload(),
+                Select::make('business_manager_id')
+                    ->relationship('businessManager', 'name')
                     ->required()
-                    ->numeric(),
+                    ->searchable()
+                    ->preload(),
                 TextInput::make('name')
                     ->required(),
                 TextInput::make('act_id')
                     ->required(),
-                TextInput::make('status')
+                Select::make('status')
+                    ->options(AdAccountStatus::getOptions())
                     ->required()
-                    ->default('1'),
+                    ->default((string) AdAccountStatus::ACTIVE->value),
                 TextInput::make('currency')
                     ->required()
                     ->default('USD'),

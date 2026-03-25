@@ -12,6 +12,7 @@ use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
 use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -35,5 +36,10 @@ class Admin extends Authenticatable implements HasAppAuthentication, HasAppAuthe
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class, 'performed_by_admin_id');
     }
 }

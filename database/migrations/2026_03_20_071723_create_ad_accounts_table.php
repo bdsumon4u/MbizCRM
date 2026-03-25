@@ -14,7 +14,8 @@ return new class extends Migration
     {
         Schema::create('ad_accounts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bm_id')->constrained('business_managers');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('business_manager_id')->constrained()->cascadeOnDelete();
             $table->string('name')->index();
             $table->string('act_id')->unique();
             $table->string('status')->default(AdAccountStatus::ACTIVE)->index();

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Admin\BusinessManagers\RelationManagers;
 
-use App\Models\AdAccount;
 use App\Services\FacebookMarketingService;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
@@ -14,7 +13,6 @@ use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
@@ -39,8 +37,8 @@ class AdAccountsRelationManager extends RelationManager
         try {
             $this->allAdAccounts = FacebookMarketingService::create($this->getOwnerRecord()->access_token)
                 ->getBusinessManagerAdAccounts($this->getOwnerRecord()->bm_id);
-            
-            $existingActIds = AdAccount::query()->where('bm_id', $this->getOwnerRecord()->bm_id)
+
+            $existingActIds = $this->getOwnerRecord()->adAccounts()
                 ->pluck('act_id')
                 ->toArray();
 
@@ -61,9 +59,9 @@ class AdAccountsRelationManager extends RelationManager
                 ->danger()
                 ->send();
 
-            throw new Halt();
+            throw new Halt;
         }
-    
+
         return $schema
             ->components([
                 Checkbox::make('select_all')
@@ -141,6 +139,7 @@ class AdAccountsRelationManager extends RelationManager
                         foreach ($data['selected_ad_accounts'] ?? [] as $actId) {
                             $account = $this->availableAdAccounts->get($actId);
                             $this->getOwnerRecord()->adAccounts()->create(Arr::except($account, [
+                                'bm_id',
                                 'facebook_ad_account_id',
                                 'created_time',
                                 'disable_reason_description',

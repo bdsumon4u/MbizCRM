@@ -2,11 +2,17 @@
 
 namespace App\Filament\Resources\Admin\AdAccounts\Tables;
 
+use App\Models\AdAccount;
+use App\Services\AdAccountFundingService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Validation\ValidationException;
 
 class AdAccountsTable
 {
@@ -14,8 +20,14 @@ class AdAccountsTable
     {
         return $table
             ->columns([
-                TextColumn::make('bm_id')
-                    ->numeric()
+                TextColumn::make('businessManager.name')
+                    ->label('Business Manager')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('user.email')
+                    ->label('Assigned User')
+                    ->placeholder('Unassigned')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),
@@ -102,6 +114,46 @@ class AdAccountsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('fund_from_wallet')
+                    ->label('Fund')
+                    ->icon('heroicon-o-banknotes')
+                    ->form([
+                        TextInput::make('requested_usd')
+                            ->label('Requested USD')
+                            ->required()
+                            ->numeric()
+                            ->step('0.000001')
+                            ->minValue(0.000001),
+                    ])
+                    ->action(function (AdAccount $record, array $data): void {
+                        if ($record->user === null) {
+                            throw ValidationException::withMessages([
+                                'requested_usd' => 'Assign a user to this ad account before funding.',
+                            ]);
+                        }
+
+                        $requestedUsdMicros = (int) round(((float) $data['requested_usd']) * 1_000_000);
+                        $fundingService = app(AdAccountFundingService::class);
+
+                        $result = $fundingService->commit(
+                            $record->user,
+                            $record,
+                            $requestedUsdMicros,
+                            'admin-'.$record->id.'-'.now()->format('YmdHisv'),
+                        );
+
+                        $notification = Notification::make()
+                            ->title($result['success'] ? 'Funding completed' : 'Funding failed')
+                            ->body($result['message']);
+
+                        if ($result['success']) {
+                            $notification->success();
+                        } else {
+                            $notification->danger();
+                        }
+
+                        $notification->send();
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

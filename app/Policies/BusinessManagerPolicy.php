@@ -4,68 +4,47 @@ namespace App\Policies;
 
 use App\Models\Admin;
 use App\Models\BusinessManager;
-use Illuminate\Auth\Access\Response;
+use App\Models\User;
 
 class BusinessManagerPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(Admin $admin): bool
+    public function viewAny(Admin|User $actor): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(Admin $admin, BusinessManager $businessManager): bool
+    public function view(Admin|User $actor, BusinessManager $businessManager): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(Admin $admin): bool
+    public function create(Admin|User $actor): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(Admin $admin, BusinessManager $businessManager): bool
+    public function update(Admin|User $actor, BusinessManager $businessManager): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(Admin $admin, BusinessManager $businessManager): bool
+    public function delete(Admin|User $actor, BusinessManager $businessManager): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(Admin $admin, BusinessManager $businessManager): bool
+    public function restore(Admin|User $actor, BusinessManager $businessManager): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(Admin $admin, BusinessManager $businessManager): bool
+    public function forceDelete(Admin|User $actor, BusinessManager $businessManager): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 
-    public function deleteAny(Admin $admin): bool
+    public function deleteAny(Admin|User $actor): bool
     {
-        return true;
+        return $actor instanceof Admin;
     }
 }

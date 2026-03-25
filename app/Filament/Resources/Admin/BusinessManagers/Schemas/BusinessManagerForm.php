@@ -8,8 +8,8 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -29,7 +29,7 @@ class BusinessManagerForm
                     ->required(),
                 TextInput::make('ad_account_prefix')
                     ->label('Ad Account Prefix'),
-                 TextInput::make('access_token')
+                TextInput::make('access_token')
                     ->required()
                     ->password(),
                 TextInput::make('name')
@@ -60,22 +60,22 @@ class BusinessManagerForm
                 ->required()
                 ->rows(3),
         ])
-        ->afterValidation(function (Get $get, Set $set) {;
-            try {
-                $data = FacebookMarketingService::create($get('access_token'))
-                    ->getBusinessManagerDetails($get('bm_id'));
+            ->afterValidation(function (Get $get, Set $set) {
+                try {
+                    $data = FacebookMarketingService::create($get('access_token'))
+                        ->getBusinessManagerDetails($get('bm_id'));
 
-                $set('name', $data['name'] ?? '');
-            } catch (\Exception $e) {
-                Notification::make()
-                    ->title('Invalid Access Token or Business Manager ID')
-                    ->body($e->getMessage())
-                    ->danger()
-                    ->send();
+                    $set('name', $data['name'] ?? '');
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Invalid Access Token or Business Manager ID')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
 
-                throw new Halt();
-            }
-        });
+                    throw new Halt;
+                }
+            });
     }
 
     public static function detailsTab(): Step
@@ -89,37 +89,40 @@ class BusinessManagerForm
             Textarea::make('description')
                 ->columnSpanFull(),
         ])
-        ->afterValidation(function (Get $get, Set $set) {
-            try {
-                $allAdAccounts = FacebookMarketingService::create($get('access_token'))
-                    ->getBusinessManagerAdAccounts($get('bm_id'));
-                
-                $existingActIds = AdAccount::query()->where('bm_id', $get('bm_id'))
-                    ->pluck('act_id')
-                    ->toArray();
+            ->afterValidation(function (Get $get, Set $set) {
+                try {
+                    $allAdAccounts = FacebookMarketingService::create($get('access_token'))
+                        ->getBusinessManagerAdAccounts($get('bm_id'));
 
-                $availableAdAccounts = $allAdAccounts->filter(fn (array $account): bool => ! in_array($account['act_id'], $existingActIds))
-                    ->mapWithKeys(fn (array $account): array => [$account['act_id'] => $account]);
+                    $existingActIds = AdAccount::query()
+                        ->whereHas('businessManager', function ($query) use ($get): void {
+                            $query->where('bm_id', $get('bm_id'));
+                        })
+                        ->pluck('act_id')
+                        ->toArray();
 
-                $set('available_ad_accounts', $availableAdAccounts);
+                    $availableAdAccounts = $allAdAccounts->filter(fn (array $account): bool => ! in_array($account['act_id'], $existingActIds))
+                        ->mapWithKeys(fn (array $account): array => [$account['act_id'] => $account]);
 
-                if ($get('available_ad_accounts')->isEmpty()) {
+                    $set('available_ad_accounts', $availableAdAccounts);
+
+                    if ($get('available_ad_accounts')->isEmpty()) {
+                        Notification::make()
+                            ->title('No new ad accounts found')
+                            ->body('All ad accounts from this business manager have already been imported.')
+                            ->info()
+                            ->send();
+                    }
+                } catch (\Exception $e) {
                     Notification::make()
-                        ->title('No new ad accounts found')
-                        ->body('All ad accounts from this business manager have already been imported.')
-                        ->info()
+                        ->title('Error Fetching Ad Accounts')
+                        ->body($e->getMessage())
+                        ->danger()
                         ->send();
-                }
-            } catch (\Exception $e) {
-                Notification::make()
-                    ->title('Error Fetching Ad Accounts')
-                    ->body($e->getMessage())
-                    ->danger()
-                    ->send();
 
-                throw new Halt();
-            }
-        });
+                    throw new Halt;
+                }
+            });
     }
 
     public static function importTab(): Step
