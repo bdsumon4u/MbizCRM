@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +32,8 @@
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             line-height: 1.3;
             color: #020617;
         }
@@ -46,7 +48,8 @@
             font-size: 1.2rem;
         }
 
-        p, li {
+        p,
+        li {
             font-size: 1rem;
         }
 
@@ -65,6 +68,7 @@
         }
     </style>
 </head>
+
 <body>
     <main class="container">
         <article class="card">
@@ -141,4 +145,5 @@
         </article>
     </main>
 </body>
+
 </html>

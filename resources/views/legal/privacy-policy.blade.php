@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +32,8 @@
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             line-height: 1.3;
             color: #020617;
         }
@@ -46,7 +48,8 @@
             font-size: 1.2rem;
         }
 
-        p, li {
+        p,
+        li {
             font-size: 1rem;
         }
 
@@ -72,6 +75,7 @@
         }
     </style>
 </head>
+
 <body>
     <main class="container">
         <article class="card">
@@ -89,7 +93,8 @@
                 <li>Account details such as name, email address, and login credentials.</li>
                 <li>Business and advertising account metadata needed to provide our services.</li>
                 <li>Transaction and wallet records related to account funding and usage history.</li>
-                <li>Technical data such as IP address, browser type, and device information for security and analytics.</li>
+                <li>Technical data such as IP address, browser type, and device information for security and analytics.
+                </li>
             </ul>
 
             <h2>2. How We Use Information</h2>
@@ -132,10 +137,12 @@
             <div class="notice">
                 <p><strong>To request data deletion:</strong></p>
                 <ol>
-                    <li>Email your request to <a href="mailto:hotashsmi@gmail.com">hotashsmi@gmail.com</a> using the subject: <strong>Data Deletion Request</strong>.</li>
+                    <li>Email your request to <a href="mailto:hotashsmi@gmail.com">hotashsmi@gmail.com</a> using the
+                        subject: <strong>Data Deletion Request</strong>.</li>
                     <li>Include your account email and any identifiers needed to locate your account.</li>
                     <li>We may verify your identity before processing deletion for security purposes.</li>
-                    <li>We will confirm receipt and complete deletion within a reasonable period unless retention is legally required.</li>
+                    <li>We will confirm receipt and complete deletion within a reasonable period unless retention is
+                        legally required.</li>
                 </ol>
             </div>
 
@@ -147,4 +154,5 @@
         </article>
     </main>
 </body>
+
 </html>
