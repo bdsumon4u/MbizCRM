@@ -13,16 +13,7 @@ return new class extends Migration
     {
         Schema::create('wallets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->string('currency', 3)->default('BDT');
-            $table->unsignedBigInteger('current_balance_poisha')->default(0);
-            $table->unsignedBigInteger('reserved_balance_poisha')->default(0);
-            $table->unsignedBigInteger('lifetime_credit_poisha')->default(0);
-            $table->unsignedBigInteger('lifetime_debit_poisha')->default(0);
-            $table->timestamp('last_activity_at')->nullable();
             $table->timestamps();
-
-            $table->index('currency');
         });
     }
 

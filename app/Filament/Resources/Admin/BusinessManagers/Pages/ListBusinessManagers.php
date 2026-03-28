@@ -12,14 +12,47 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 class ListBusinessManagers extends ListRecords
 {
     protected static string $resource = BusinessManagerResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        if (session()->has('facebook_oauth_success')) {
+            Notification::make()
+                ->title('Facebook Connected')
+                ->body((string) session('facebook_oauth_success'))
+                ->success()
+                ->send();
+        }
+
+        if (session()->has('facebook_oauth_error')) {
+            Notification::make()
+                ->title('Facebook OAuth Failed')
+                ->body((string) session('facebook_oauth_error'))
+                ->danger()
+                ->send();
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('connect_facebook_oauth')
+                ->label('Connect Facebook (OAuth)')
+                ->icon('heroicon-o-link')
+                ->url(Route::has('admin.facebook.business-managers.oauth.redirect')
+                    ? route('admin.facebook.business-managers.oauth.redirect')
+                    : null)
+                ->openUrlInNewTab()
+                ->disabled(fn (): bool => ! Route::has('admin.facebook.business-managers.oauth.redirect'))
+                ->tooltip(fn (): ?string => Route::has('admin.facebook.business-managers.oauth.redirect')
+                    ? null
+                    : 'OAuth routes are not available. Clear route cache or redeploy.'),
             Action::make('import')
                 ->form([
                     TextInput::make('access_token')
