@@ -90,7 +90,7 @@
 
             <h2>1. Information We Collect</h2>
             <ul>
-                <li>Account details such as name, email address, and login credentials.</li>
+                <li>Account details such as name, email address.</li>
                 <li>Business and advertising account metadata needed to provide our services.</li>
                 <li>Transaction and wallet records related to account funding and usage history.</li>
                 <li>Technical data such as IP address, browser type, and device information for security and analytics.
