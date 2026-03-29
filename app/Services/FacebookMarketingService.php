@@ -18,7 +18,6 @@ use FacebookAds\Object\Fields\AdAccountFields;
 use FacebookAds\Object\Fields\AdFields;
 use FacebookAds\Object\Fields\AdSetFields;
 use FacebookAds\Object\Fields\CampaignFields;
-use FacebookAds\Object\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -722,34 +721,7 @@ final readonly class FacebookMarketingService
     public function getAccessibleBusinessManagers(): Collection
     {
         try {
-            // Get the current user to access their businesses
-            $user = new User('me');
-
-            $businesses = $user->getBusinesses([
-                'id',
-                'name',
-                'created_time',
-                'timezone_id',
-                'primary_page',
-                'is_hidden',
-                'link',
-            ]);
-
-            $businessManagers = collect();
-
-            foreach ($businesses as $business) {
-                $businessManagers->push([
-                    'bm_id' => $business->{'id'},
-                    'name' => $business->{'name'},
-                    'created_time' => $business->{'created_time'},
-                    'timezone_id' => $business->{'timezone_id'},
-                    'primary_page' => $business->{'primary_page'},
-                    'is_hidden' => $business->{'is_hidden'},
-                    'link' => $business->{'link'},
-                ]);
-            }
-
-            return $businessManagers;
+            return $this->fetchBusinessManagersFromEdge('/me/businesses');
         } catch (Exception $e) {
             Log::error('Failed to get accessible business managers: '.$e->getMessage());
             throw new Exception('Failed to get accessible business managers: '.$e->getMessage(), $e->getCode(), $e);
@@ -762,10 +734,23 @@ final readonly class FacebookMarketingService
     public function getOwnedBusinessManagers(): Collection
     {
         try {
-            // Get the current user to access their owned businesses
-            $user = new User('me');
+            $ownedBusinesses = $this->fetchBusinessManagersFromEdge('/me/owned_businesses');
 
-            $businesses = $user->getBusinesses([
+            return $ownedBusinesses->map(function (array $business): array {
+                $business['ownership'] = 'owned';
+
+                return $business;
+            })->values();
+        } catch (Exception $e) {
+            Log::error('Failed to get owned business managers: '.$e->getMessage());
+            throw new Exception('Failed to get owned business managers: '.$e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    private function fetchBusinessManagersFromEdge(string $edge): Collection
+    {
+        $response = Api::instance()->call($edge, 'GET', [
+            'fields' => implode(',', [
                 'id',
                 'name',
                 'created_time',
@@ -773,28 +758,22 @@ final readonly class FacebookMarketingService
                 'primary_page',
                 'is_hidden',
                 'link',
-            ]);
+            ]),
+        ]);
 
-            $businessManagers = collect();
+        $data = $response->getContent()['data'] ?? [];
 
-            foreach ($businesses as $business) {
-                $businessManagers->push([
-                    'bm_id' => $business->{'id'},
-                    'name' => $business->{'name'},
-                    'created_time' => $business->{'created_time'},
-                    'timezone_id' => $business->{'timezone_id'},
-                    'primary_page' => $business->{'primary_page'},
-                    'is_hidden' => $business->{'is_hidden'},
-                    'link' => $business->{'link'},
-                    'ownership' => 'owned',
-                ]);
-            }
-
-            return $businessManagers;
-        } catch (Exception $e) {
-            Log::error('Failed to get owned business managers: '.$e->getMessage());
-            throw new Exception('Failed to get owned business managers: '.$e->getMessage(), $e->getCode(), $e);
-        }
+        return collect($data)->map(static function (array $business): array {
+            return [
+                'bm_id' => (string) ($business['id'] ?? ''),
+                'name' => (string) ($business['name'] ?? ''),
+                'created_time' => $business['created_time'] ?? null,
+                'timezone_id' => $business['timezone_id'] ?? null,
+                'primary_page' => $business['primary_page'] ?? null,
+                'is_hidden' => $business['is_hidden'] ?? null,
+                'link' => $business['link'] ?? null,
+            ];
+        })->filter(static fn (array $business): bool => $business['bm_id'] !== '')->values();
     }
 
     /**
