@@ -9,6 +9,7 @@ use App\Services\FacebookMarketingService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -32,6 +33,7 @@ class FacebookBusinessManagerOAuthController extends Controller
 
         $state = Str::random(40);
         $request->session()->put('facebook_oauth_state', $state);
+        Cache::put($this->cacheKeyForState($state), true, now()->addMinutes(10));
 
         $scopes = array_values(array_filter(array_map(
             static fn (mixed $scope): string => trim((string) $scope),
@@ -57,8 +59,10 @@ class FacebookBusinessManagerOAuthController extends Controller
     {
         $expectedState = (string) $request->session()->pull('facebook_oauth_state', '');
         $providedState = (string) $request->query('state', '');
+        $hasValidSessionState = $expectedState !== '' && hash_equals($expectedState, $providedState);
+        $hasValidCachedState = $this->consumeCachedOAuthState($providedState);
 
-        if ($expectedState === '' || ! hash_equals($expectedState, $providedState)) {
+        if (! $hasValidSessionState && ! $hasValidCachedState) {
             return redirect()->route('filament.admin.resources.admin.business-managers.index')
                 ->with('facebook_oauth_error', 'Invalid OAuth state. Please try connecting again.');
         }
@@ -153,5 +157,26 @@ class FacebookBusinessManagerOAuthController extends Controller
         }
 
         return $configuredRedirectUri;
+    }
+
+    private function cacheKeyForState(string $state): string
+    {
+        return 'facebook_oauth_state:'.$state;
+    }
+
+    private function consumeCachedOAuthState(string $state): bool
+    {
+        if ($state === '') {
+            return false;
+        }
+
+        $cacheKey = $this->cacheKeyForState($state);
+        $isPresent = Cache::has($cacheKey);
+
+        if ($isPresent) {
+            Cache::forget($cacheKey);
+        }
+
+        return $isPresent;
     }
 }
