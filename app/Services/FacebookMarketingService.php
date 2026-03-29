@@ -742,6 +742,12 @@ final readonly class FacebookMarketingService
                 return $business;
             })->values();
         } catch (Exception $e) {
+            if ($this->isUnsupportedOwnedBusinessesEdgeError($e)) {
+                Log::warning('Facebook owned_businesses edge is unavailable for this token/app. Falling back to accessible businesses only.');
+
+                return collect();
+            }
+
             Log::error('Failed to get owned business managers: '.$e->getMessage());
             throw new Exception('Failed to get owned business managers: '.$e->getMessage(), $e->getCode(), $e);
         }
@@ -774,6 +780,14 @@ final readonly class FacebookMarketingService
                 'link' => $business['link'] ?? null,
             ];
         })->filter(static fn (array $business): bool => $business['bm_id'] !== '')->values();
+    }
+
+    private function isUnsupportedOwnedBusinessesEdgeError(Exception $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'nonexisting field')
+            && str_contains($message, 'owned_businesses');
     }
 
     /**
